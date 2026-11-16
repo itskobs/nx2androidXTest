@@ -28,6 +28,7 @@ data class GameDetailUiState(
 class GameDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     val saveRepository: SaveRepository,
+    val modRepository: ModRepository,
     val saveIo: SaveIo,
     private val runOptionsRepository: RunOptionsRepository,
 ) : ViewModel() {
