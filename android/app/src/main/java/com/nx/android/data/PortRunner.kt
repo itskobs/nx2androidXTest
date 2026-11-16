@@ -36,7 +36,10 @@ class PortRunner(
             sharedFont, firmware, mtReplay, deviceLanguage())
         // A file in a netdisk's folder is not there yet in its middle: the port would read it as a broken dump
         GameSource.cloudFolder(gameFile)?.let { onLine(locale.str(R.string.runner_cloud_folder, it)) }
-        return start(args, onEnd, if (packDir.isNullOrBlank()) emptyMap() else mapOf("NX2A_PACK_DIR" to packDir))
+        val extraMap = mutableMapOf<String, String>()
+        if (!packDir.isNullOrBlank()) extraMap["NX2A_PACK_DIR"] = packDir
+        if (!modsDir.isNullOrBlank()) extraMap["NX2A_MODS_DIR"] = modsDir
+        return start(args, onEnd, extraMap)
     }
 
     /**
