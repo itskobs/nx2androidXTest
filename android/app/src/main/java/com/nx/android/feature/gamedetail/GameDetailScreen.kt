@@ -158,7 +158,8 @@ fun GameDetailRoute(lib: LibraryState, port: PortState, player: PlayerState,
     DisposableEffect(viewModel, e.titleId) {
         onDispose { viewModel.close(e.titleId) }
     }
-    GameDetailScreen(lib, port, player, e, installedDrivers, viewModel.saveRepository, viewModel.saveIo,
+        GameDetailScreen(lib, port, player, e, installedDrivers, viewModel.saveRepository, viewModel.saveIo,
+        viewModel.modRepository,
         uiState, viewModel::selectLanguage, viewModel::selectDriver, actions, onGoBuilds, onRequest, onClose,
         navActive = navActive)
 }
