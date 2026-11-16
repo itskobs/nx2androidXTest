@@ -594,4 +594,11 @@
     <string name="drawer_players_note">Player 1 is the phone: the on-screen gamepad and the motion are its, and it takes the controllers nobody else plays (automatic). Lock it to one controller and the others sit out. A controller plays one player only.</string>
     <string name="pad_center_player">Player %1$d</string>
     <string name="pad_center_idle">Idle</string>
+    <string name="lib_section_mods">Mods</string>
+    <string name="lib_mods_empty">No mods imported for this game.</string>
+    <string name="lib_mods_import_zip">Import ZIP</string>
+    <string name="lib_mods_import_folder">Import folder</string>
+    <string name="lib_mods_imported">Mod imported</string>
+    <string name="lib_mods_delete_confirm">Delete this mod?</string>
+    <string name="lib_mods_rebuild_hint">Enabled mods apply on the next build of this game.</string>
 </resources>
