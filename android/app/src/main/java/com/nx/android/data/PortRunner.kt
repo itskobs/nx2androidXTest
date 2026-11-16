@@ -29,6 +29,7 @@ class PortRunner(
         aliasHeadroom: Int,
         sharedFont: String = "", firmware: String = "", mtReplay: Boolean = false,
         packDir: String? = null,
+        modsDir: String? = null,
         onEnd: () -> Unit,
     ): Thread {
         val args = portArgs(gameFile, keys, touch, fps60, experimental, aliasHeadroom, !BuildConfig.NX_LSFG,
