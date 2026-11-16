@@ -67,7 +67,7 @@ class PortService : Service() {
             ctx: Context, game: String, keys: String,
             touch: Boolean, fps60: Boolean, exp: Boolean, aliasHeadroom: Int,
             sharedFont: String = "", firmware: String = "", mtReplay: Boolean = false,
-            packDir: String? = null
+            packDir: String? = null, modsDir: String? = null // NEW
         ) {
             val i = Intent(ctx, PortService::class.java)
                 .setAction(ACTION_START)
@@ -78,6 +78,7 @@ class PortService : Service() {
             if (firmware.isNotBlank()) i.putExtra(FIRMWARE, firmware)
             if (mtReplay) i.putExtra(MT, true)
             if (!packDir.isNullOrBlank()) i.putExtra(PACK_DIR, packDir)
+            if (!modsDir.isNullOrBlank()) i.putExtra(MODS_DIR, modsDir) // NEW
             ContextCompat.startForegroundService(ctx, i)
         }
 
