@@ -155,6 +155,7 @@ android {
         // platform's Conscrypt does not export: the app pairs with itself to switch off Android's
         // child-process limit (data/PhantomFix.kt)
         implementation("org.conscrypt:conscrypt-android:2.7.0")
+        implementation("androidx.documentfile:documentfile:1.0.1")
         testImplementation("junit:junit:4.13.2")
         testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
         // the porter's progress events and the data pack's manifest are JSON: the JVM tests parse them with
