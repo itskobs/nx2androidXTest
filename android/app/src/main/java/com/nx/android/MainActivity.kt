@@ -161,15 +161,23 @@ class MainActivity : ComponentActivity() {
         storageOk = { onboarding.storageOk },
         onSetKeys = { prefs.writeKeys(it); envCheck.refresh() },
         onStartPort = { file, cfg ->
-            // 没有「所有文件访问」权限就读不到游戏文件（重装 App 后会掉）：移植会死在半个 Python 栈里，先说清楚
             if (port.running || runtime.running || player.running || Player.playProcessAlive(this)) {
                 toast(locale.str(R.string.runtime_busy))
             } else if (file.canRead()) {
-                // 落位跟着这个游戏的数据包走：它在可移动卡上，新包就建在那儿（内部存储的那份不动）
                 val packDir = library.packDirOf(file)?.absolutePath
+                
+                // NEW: Find the mods directory for this Title ID
+                val titleId = GameIdentity.titleIdIn(file.name)
+                val modsDir = titleId?.let { id ->
+                    File(filesDir, "mods/$id").absolutePath.takeIf { 
+                        modRepository.list(id).any { m -> m.enabled } 
+                    }
+                }
+
                 PortService.start(this, file.absolutePath, prefs.keys,
                                   cfg.touch, cfg.fps60, cfg.experimental, cfg.aliasHeadroom,
-                                  cfg.sharedFont, firmwareRepo.folder ?: "", cfg.mtReplay, packDir)
+                                  cfg.sharedFont, firmwareRepo.folder ?: "", cfg.mtReplay, packDir,
+                                  modsDir) // NEW: Pass modsDir
             } else {
                 toast(locale.str(R.string.builds_needs_storage)); askStorage()
             }
