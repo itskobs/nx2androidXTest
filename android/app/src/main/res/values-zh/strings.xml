@@ -593,4 +593,11 @@
     <string name="drawer_players_note">玩家 1 永远是手机：触屏的虚拟按键与体感都是它的，它再接手柄。默认「自动」——没被指派走的手柄都算玩家 1（单人游戏插两只手柄都能玩）。锁死某一只之后，别的就闲置了（按了没人管）。一只手柄只能属于一个玩家。</string>
     <string name="pad_center_player">玩家 %1$d</string>
     <string name="pad_center_idle">闲置</string>
+    <string name="lib_section_mods">模组</string>
+    <string name="lib_mods_empty">此游戏尚未导入模组。</string>
+    <string name="lib_mods_import_zip">导入 ZIP</string>
+    <string name="lib_mods_import_folder">导入文件夹</string>
+    <string name="lib_mods_imported">模组已导入</string>
+    <string name="lib_mods_delete_confirm">删除此模组？</string>
+    <string name="lib_mods_rebuild_hint">启用的模组将在下次构建此游戏时生效。</string>
 </resources>
