@@ -167,7 +167,7 @@ fun GameDetailRoute(lib: LibraryState, port: PortState, player: PlayerState,
 @Composable
 private fun GameDetailScreen(lib: LibraryState, port: PortState, player: PlayerState,
                         e: GameEntry, installedDrivers: List<Driver>, saveRepository: SaveRepository,
-                        saveIo: SaveIo, detailState: GameDetailUiState,
+                        saveIo: SaveIo, modRepository: ModRepository, detailState: GameDetailUiState,
                         onSelectLanguage: (String?) -> Unit, onSelectDriver: (String?) -> Unit,
                         actions: AppActions, onGoBuilds: () -> Unit,
                         onRequest: (PickerRequest) -> Unit, onClose: () -> Unit,
