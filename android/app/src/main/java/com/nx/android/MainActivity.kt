@@ -92,6 +92,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var firmwareRepo: com.nx.android.data.firmware.FirmwareRepository
     @Inject lateinit var envCheck: EnvCheckState
     @Inject lateinit var update: com.nx.android.appstate.UpdateState
+    @Inject lateinit var modRepository: ModRepository
 
     /** 界面语言：toast 与分享面板的标题从这里取词 */
     /** Which tab the screen opens on (the notification's tap says the builds page) */
