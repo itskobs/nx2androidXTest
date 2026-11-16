@@ -187,6 +187,7 @@ class PortService : Service() {
                 intent.getIntExtra(ALIAS, ALIAS_AUTO),
                 intent.getStringExtra(FONT) ?: "", intent.getStringExtra(FIRMWARE) ?: "",
                 intent.getBooleanExtra(MT, false), intent.getStringExtra(PACK_DIR),
+                intent.getStringExtra(MODS_DIR)
             ) {
                 handler.post {
                     if (runner === taskRunner) {
