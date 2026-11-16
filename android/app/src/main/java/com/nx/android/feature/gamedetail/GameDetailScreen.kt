@@ -467,7 +467,11 @@ private fun GameDetailScreen(lib: LibraryState, port: PortState, player: PlayerS
                             detailState.runOptionsFailure, onSelectLanguage, onSelectDriver)
                         Spacer(Modifier.height(10.dp))
                         SaveRows(ported, e.label, saveRepository, saveIo, actions.onToast)
+                        Spacer(Modifier.height(10.dp))
+                        ModsSection(modRepository, ported.titleId, actions.onToast)
                         Spacer(Modifier.height(6.dp))
+                        // 别的游戏在跑时锁住这个：跑着的那个自己不受限（点它的「运行」是回到它）
+                        // 别的游戏在跑时锁住这个：跑着的那个自己不受限（点它的「运行」是回到它）
                         // 别的游戏在跑时锁住这个：跑着的那个自己不受限（点它的「运行」是回到它）
                         val locked = player.running && player.titleId != ported.titleId
                         if (locked) Hint(locale.str(R.string.lib_close_current_game, player.name))
