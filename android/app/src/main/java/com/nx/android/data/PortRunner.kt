@@ -2,9 +2,11 @@ package com.nx.android.data
 
 import com.nx.android.BuildConfig
 import com.nx.android.R
+import com.nx.android.domain.GameIdentity
 import com.nx.android.domain.GameSource
 import com.nx.android.domain.environment.EnvironmentSetup
 import com.nx.android.domain.environment.GuestProcessLauncher
+import com.nx.android.data.mods.ModOverlayEngine
 import java.io.File
 
 /**
@@ -34,34 +36,21 @@ class PortRunner(
     ): Thread {
         val args = portArgs(gameFile, keys, touch, fps60, experimental, aliasHeadroom, !BuildConfig.NX_LSFG,
             sharedFont, firmware, mtReplay, deviceLanguage())
-        // A file in a netdisk's folder is not there yet in its middle: the port would read it as a broken dump
+        
         GameSource.cloudFolder(gameFile)?.let { onLine(locale.str(R.string.runner_cloud_folder, it)) }
+        
         val extraMap = mutableMapOf<String, String>()
         if (!packDir.isNullOrBlank()) extraMap["NX2A_PACK_DIR"] = packDir
         if (!modsDir.isNullOrBlank()) extraMap["NX2A_MODS_DIR"] = modsDir
-        return start(args, onEnd, extraMap)
+        
+        val titleId = GameIdentity.titleIdIn(File(gameFile).name)
+        
+        return start(args, onEnd, extraMap, titleId, modsDir, packDir)
     }
 
-    /**
-     * The phone's own language: the pack follows it when the game has it (the porter takes it as a wish: a game
-     * without it is packed in its own first language, as before).
-     */
     private fun deviceLanguage(): String = java.util.Locale.getDefault().toLanguageTag()
 
     companion object {
-
-        /**
-         * The porter's command line for a port: pure, so the test can check it on the JVM.
-         *
-         * There is no output folder on the command line: the data pack goes into the app's own folder
-         * (the porter's app mode puts it there, whatever the caller says).
-         *
-         * The extra address space (the alias region): Auto passes nothing, the porter decides by itself
-         * (the version the profile was tested with gets none, another one 8 GB).
-         *
-         * The player's own overrides: the system font (a .ttf; empty = the app's own, which has the CJK
-         * glyphs), the firmware dump's system content folder (empty = none) and the multithread replay.
-         */
         fun portArgs(gameFile: String, keys: String, touch: Boolean, fps60: Boolean,
                      experimental: Boolean, aliasHeadroom: Int, noLsfg: Boolean,
                      sharedFont: String = "", firmware: String = "", mtReplay: Boolean = false,
@@ -75,17 +64,11 @@ class PortRunner(
             if (firmware.isNotBlank()) args += listOf("--firmware", firmware.trim())
             if (mtReplay) args += "--mt-replay"
             if (deviceLanguage.isNotBlank()) args += listOf("--language-preferred", deviceLanguage.trim())
-            // A build without the frame generation (the Gradle property nxLsfg=false): the host the app builds on the
-            // device is then smaller and the frame generation reports that it is not in this build (android/NOTICE.md).
             if (noLsfg) args += "--no-lsfg"
             return args
         }
     }
 
-    /**
-     * The tools check: the interpreter paths first (the porter would otherwise report its tools missing from the
-     * saved setting). [json] asks for the rows as one JSON array, the form the keys check reads.
-     */
     fun doctor(keys: String, json: Boolean, onEnd: () -> Unit): Thread {
         val args = mutableListOf("-m", "porter", "doctor")
         if (json) args += "--json"
@@ -104,7 +87,14 @@ class PortRunner(
         return t
     }
 
-    private fun start(args: List<String>, onEnd: () -> Unit, extra: Map<String, String> = emptyMap()): Thread {
+    private fun start(
+        args: List<String>, 
+        onEnd: () -> Unit, 
+        extra: Map<String, String> = emptyMap(),
+        titleId: String? = null,
+        modsDir: String? = null,
+        packDir: String? = null
+    ): Thread {
         val t = Thread {
             try {
                 if (cancelled) return@Thread
@@ -116,7 +106,32 @@ class PortRunner(
                 }
                 p.inputStream.bufferedReader().forEachLine { onLine(it) }
                 val code = runCatching { p.waitFor() }.getOrDefault(-1)
-                if (code != 0) onLine(exitLine(code))
+                
+                if (code != 0) {
+                    onLine(exitLine(code))
+                } else if (titleId != null && modsDir != null && packDir != null) {
+                    // THE FINAL HOOK: Apply mods after the porter successfully finishes
+                    val pack = File(packDir)
+                    val romfs = File(pack, "romfs")
+                    val exefs = File(pack, "exefs")
+                    
+                    if (romfs.isDirectory) {
+                        onLine("Applying mods...")
+                        try {
+                            val report = ModOverlayEngine.applyPrePort(
+                                titleId = titleId,
+                                modsDir = File(modsDir),
+                                extractedRomfs = romfs,
+                                extractedExefs = exefs.takeIf { it.isDirectory }
+                            )
+                            report.logLines.forEach { onLine(it) }
+                            onLine("Mods applied successfully.")
+                        } catch (e: Exception) {
+                            onLine("[RED] Failed to apply mods: ${e.message}")
+                        }
+                    }
+                }
+                
                 statusFile?.let { writeStatus(it, code) }
             } catch (e: Exception) {
                 onLine("[RED] ${e.message}")
@@ -129,22 +144,13 @@ class PortRunner(
         return t
     }
 
-    /**
-     * How the run ended: the exit code, or the signal that killed it (the system takes the memory when a port
-     * grows too big; the JDK reports such a process as 128 + the signal).
-     */
     private fun exitLine(code: Int): String {
         val sig = signal(code)
         return if (sig != 0) locale.str(R.string.runner_killed, sig) else locale.str(R.string.runner_exit_code, code)
     }
 
-    /** The signal that killed the process, 0 when it ended on its own */
     private fun signal(code: Int): Int = if (code in 129..255) code - 128 else 0
 
-    /**
-     * The run's end, in a file: the log bundle takes it, so a port the system killed says so (the porter itself
-     * had no chance to write anything).
-     */
     private fun writeStatus(file: File, code: Int) {
         try {
             file.parentFile?.mkdirs()
@@ -155,7 +161,6 @@ class PortRunner(
         }
     }
 
-    /** Stops the porter and the tools it started (they are the app's own processes, stopped one by one) */
     fun cancel() {
         cancelled = true
         try { proc?.destroyForcibly() } catch (e: Exception) {
