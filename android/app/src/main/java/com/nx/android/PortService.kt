@@ -55,6 +55,7 @@ class PortService : Service() {
         const val FIRMWARE = "firmware";
         const val MT = "mt";
         const val PACK_DIR = "packDir"
+        const val MODS_DIR = "modsDir"
         // The Intent's extras: the port's parameters, handed over from the UI to the service
         // Intent 的 extra：移植的参数，从界面交到服务手里
 
