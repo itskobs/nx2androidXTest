@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import com.nx.android.domain.porting.PortPhase
+import com.nx.android.domain.mods.ModRepository
 import javax.inject.Inject
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import com.nx.android.data.library.LibraryFileScanner
 import com.nx.android.domain.GameIdentity
 import com.nx.android.domain.LibraryLogic
 import com.nx.android.domain.RunAction
-import com.nx.android.domain.mods.ModRepository
 import com.nx.android.app.AppActions
 import com.nx.android.app.AppRoot
 import com.nx.android.input.GamepadScan
@@ -161,13 +161,17 @@ class MainActivity : ComponentActivity() {
         storageOk = { onboarding.storageOk },
         onSetKeys = { prefs.writeKeys(it); envCheck.refresh() },
         onStartPort = { file, cfg ->
+            // 没有「所有文件访问」权限就读不到游戏文件（重装 App 后会掉）：移植会死在半个 Python 栈里，先说清楚
             if (port.running || runtime.running || player.running || Player.playProcessAlive(this)) {
                 toast(locale.str(R.string.runtime_busy))
             } else if (file.canRead()) {
+                // 落位跟着这个游戏的数据包走：它在可移动卡上，新包就建在那儿（内部存储的那份不动）
                 val packDir = library.packDirOf(file)?.absolutePath
                 
-                // NEW: Find the mods directory for this Title ID
-                val titleId = GameIdentity.titleIdIn(file.name)
+                // NEW: Find the Title ID from the library (fallback to filename)
+                val titleId = library.visible().firstOrNull { it.source == file || it.sourcePath == file.absolutePath }?.titleId
+                    ?: GameIdentity.titleIdIn(file.name)
+                    
                 val modsDir = titleId?.let { id ->
                     File(filesDir, "mods/$id").absolutePath.takeIf { 
                         modRepository.list(id).any { m -> m.enabled } 
